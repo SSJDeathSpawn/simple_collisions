@@ -9,13 +9,13 @@ CFLAGS := -W -Wall --std=c99 -lSDL2 -lm -lGL -lGLEW
 HDRS := glew/include/GL/glew.h
 
 # add source files here
-SRCS := hello_world.c
+SRCS := $(wildcard src/**/*.c) $(wildcard src/*.c) $(wildcard src/**/**/*.c) $(wildcard src/**/**/**/*.c)
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
 
 # name of executable
-EXEC := a.out
+EXEC := bin/a.out
 
 # default recipe
 all: $(EXEC)
