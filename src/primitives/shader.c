@@ -59,6 +59,7 @@ ShaderProgram shader_create(char* vs_path, char* fs_path) {
     ShaderProgram self;
     self.vs_id = _compile(vs_path, GL_VERTEX_SHADER);
     self.fs_id = _compile(fs_path, GL_FRAGMENT_SHADER);
+    self.gs_id = NULL;
     self.id = glCreateProgram();
 
     printf("Linking shader...");
@@ -82,10 +83,43 @@ ShaderProgram shader_create(char* vs_path, char* fs_path) {
     return self;
 } 
 
+ShaderProgram shader_create_with_gs(char* vs_path, char* fs_path, char* gs_path) {
+    printf("Compiling shaders...\n");
+    ShaderProgram self;
+    self.vs_id = _compile(vs_path, GL_VERTEX_SHADER);
+    self.fs_id = _compile(fs_path, GL_FRAGMENT_SHADER);
+    self.gs_id = _compile(gs_path, GL_GEOMETRY_SHADER);
+    self.id = glCreateProgram();
+
+    printf("Linking shader...");
+    glAttachShader(self.id, self.vs_id);
+    glAttachShader(self.id, self.fs_id);
+    glAttachShader(self.id, self.gs_id);
+    printf("Checking for errors...");
+
+    glLinkProgram(self.id);
+
+    GLint linked;
+    glGetProgramiv(self.id, GL_LINK_STATUS, &linked);
+
+    if (linked == 0) {
+        char buf[512];
+        snprintf(buf, 512, "[%s, %s]", vs_path, fs_path);
+        printf("Error when linking shaders!\n");
+        _log_and_fail(self.id, "linking", buf, glGetProgramInfoLog, glGetProgramiv);
+        exit(1);
+    }
+    printf("Linked shaders!\n");
+    return self;
+} 
+
 void shader_destroy(ShaderProgram self) {
     glDeleteProgram(self.id);
     glDeleteShader(self.vs_id);
     glDeleteShader(self.fs_id);
+    if (self.gs_id != NULL) {
+        glDeleteShader(self.gs_id);
+    }
 }
 
 void shader_bind(ShaderProgram self) {

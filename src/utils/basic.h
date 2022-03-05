@@ -1,9 +1,10 @@
 #ifndef BASIC_H
 #define BASIC_H
+#include <GL/glew.h>
 
 typedef struct Vector2f {
-    float x;
-    float y;
+    GLfloat x;
+    GLfloat y;
 } Vector2f;
 
 Vector2f add_vectors(Vector2f addend1, Vector2f addend2);

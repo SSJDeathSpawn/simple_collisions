@@ -3,13 +3,22 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "primitives/shader.h"
-#include "primitives/vbo.h"
-#include "primitives/vao.h"
+#include "graphics/renderer.h"
 #include "utils/error_handling.h"
 int main() {
     
-    GLfloat vertices[] = {0.5f, 0.0f, -0.5f, 0.0f, 0.0f, 0.5f}; 
+    unsigned int lastTick, deltaTime;
+
+    Vector2f vertices[] = {
+        {-0.75f, -0.75f}, 
+        { 0.75f, -0.75f}, 
+        { 0.75f,  0.75f}, 
+        {-0.75f,  0.75f}
+    };
+    GLuint indices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         printf("Error initializing SDL: %s\n", SDL_GetError());
@@ -35,35 +44,28 @@ int main() {
     printf("If you can see this, printf is working\n");
     bool running = true; 
 
-    printf("Creating shaders!\n");
-    ShaderProgram shader = shader_create("./res/shaders/vertex.glsl","./res/shaders/fragment.glsl");
-    VAO vao = vao_create();
-    vao_bind(vao);
-    VBO vbo = vbo_create(GL_ARRAY_BUFFER);
-    vao_bind(vao);
-    vbo_buffer(vbo, vertices, 0, sizeof(GLfloat)*6);
-    vbo_bind(vbo);
-    vao_attr(vao, vbo, 0, 2, GL_FLOAT, 0, 0);
+    Renderer renderer;
+
+    init_renderer(&renderer);
+    load_vbo_ibo_renderer(&renderer, vertices, 4, indices, 6);
+    use_shader_renderer(&renderer, SHADER_LINES);
+
+    lastTick = SDL_GetTicks();
     while (running) {
+        deltaTime = SDL_GetTicks() - lastTick;  
+        lastTick = SDL_GetTicks();
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
             }
         }
+        //printf("%d\n", deltaTime);
         glClear(GL_COLOR_BUFFER_BIT);
-        shader_bind(shader);
-        vao_bind(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        getErrorAndLog();
-        vao_unbind(vao);
-        shader_unbind();
+        draw_call_renderer(renderer);
         SDL_GL_SwapWindow(win);
     } 
-    /*vbo_destroy(vbo);
-    vao_destroy(vao);
-    shader_destroy(shader);*/
-
+    destroy_renderer(&renderer);
     SDL_DestroyWindow(win);
     SDL_Quit(); 
     return 0;
