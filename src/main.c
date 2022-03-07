@@ -5,16 +5,25 @@
 #include <stdbool.h>
 #include "graphics/renderer.h"
 #include "utils/error_handling.h"
+#include "graphics/scene_obj.h"
+#include "objects/particles.h"
+
 int main() {
     
     unsigned int lastTick, deltaTime;
 
-    Vector2f vertices[] = {
-        {-0.75f, -0.75f}, 
-        { 0.75f, -0.75f}, 
-        { 0.75f,  0.75f}, 
-        {-0.75f,  0.75f}
+    Vertex vertices[4] = {
+        {{-0.75f, -0.75f}, {1.0f, 0.5f, 0.2f, 1.0f}}, 
+        {{ 0.75f, -0.75f}, {1.0f, 0.5f, 0.2f, 1.0f}},
+        {{ 0.75f,  0.75f}, {1.0f, 0.5f, 0.2f, 1.0f}},
+        {{-0.75f,  0.75f}, {1.0f, 0.5f, 0.2f, 1.0f}}
     };
+
+    VertexLayout *vl;
+    vl = (VertexLayout *) malloc(sizeof(VertexLayout) + 2*sizeof(GLint)); 
+    vl->counter = 0;
+    add_element_vl(vl, 2);
+    add_element_vl(vl, 4);
     GLuint indices[] = {
         0, 1, 2,
         2, 3, 0
@@ -40,16 +49,26 @@ int main() {
         return -1;
     }
 
-    printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-    printf("If you can see this, printf is working\n");
     bool running = true; 
 
     Renderer renderer;
+    SceneObject box;
+    box.shader = SHADER_LINES;
+    box.vert = &vertices;
+    box.num_vertices = sizeof(vertices)/sizeof(Vertex); 
+    box.ind = &indices;
+    box.num_indices = sizeof(indices)/sizeof(GLuint);
+    box.noInd = false;
+
+    Particle *particles = create_particles(10);
+    Vertex vertexArray[10];
+    SceneObject vis_part = make_scene_obj_from_particles(particles, 10);
 
     init_renderer(&renderer);
-    load_vbo_ibo_renderer(&renderer, vertices, 4, indices, 6);
-    use_shader_renderer(&renderer, SHADER_LINES);
 
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+
+    SDL_GL_SetSwapInterval(1);
     lastTick = SDL_GetTicks();
     while (running) {
         deltaTime = SDL_GetTicks() - lastTick;  
@@ -60,9 +79,14 @@ int main() {
                 running = false;
             }
         }
-        //printf("%d\n", deltaTime);
-        glClear(GL_COLOR_BUFFER_BIT);
-        draw_call_renderer(renderer);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        load_scene_obj_renderer(&renderer, box);
+        load_vao_attrs(renderer, vl);
+        draw_call_renderer(renderer, GL_TRIANGLES);
+        load_scene_obj_renderer(&renderer, vis_part);
+        load_vao_attrs(renderer, vl);
+        draw_call_renderer(renderer, GL_POINTS);
+        getErrorAndLog();
         SDL_GL_SwapWindow(win);
     } 
     destroy_renderer(&renderer);

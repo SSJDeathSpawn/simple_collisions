@@ -6,6 +6,7 @@ layout (location=1) in vec4 col;
 smooth out vec4 colour;
 
 void main() {
-    gl_Position = vec4(pos,1.0f, 1.0f);
+    gl_Position = vec4(pos, 1.0f, 1.0f);
+    gl_PointSize = 10;
     colour = col;
 }

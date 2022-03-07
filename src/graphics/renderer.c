@@ -7,7 +7,8 @@ void init_renderer(Renderer *self) {
     self->curr_shader = SHADER_NONE;
 
     self->all_shaders[SHADER_BASIC] = shader_create("res/shaders/vertex.glsl", "res/shaders/fragment.glsl");
-    self->all_shaders[SHADER_LINES] = shader_create_with_gs("res/shaders/vertex.glsl", "res/shaders/fragment.glsl", "res/shaders/lines.glsl");
+    self->all_shaders[SHADER_POINTS] = shader_create("res/shaders/big_pt_vertex.glsl", "res/shaders/fragment.glsl");
+    self->all_shaders[SHADER_LINES] = shader_create_with_gs("res/shaders/vert_ol.glsl", "res/shaders/frag_ol.glsl", "res/shaders/lines.glsl");
 
     self->curr_vao = vao_create();
     self->curr_vbo = vbo_create(GL_ARRAY_BUFFER);
@@ -25,24 +26,29 @@ void destroy_renderer(Renderer *self) {
 
 }
 
-void load_vbo_ibo_renderer(Renderer *self, Vector2f vertices[], int num_vertices, GLuint indices[], int num_indices) {
+void load_vbo_ibo_renderer(Renderer *self, Vertex vertices[], int num_vertices, GLuint indices[], int num_indices) {
     self->flag = true;
     vbo_buffer(self->curr_vbo, vertices, 0, sizeof(vertices[0])*num_vertices);
     vbo_buffer(self->curr_ibo, indices, 0, sizeof(indices[0])*num_indices);
     self->points = num_indices;
-    vao_attr(self->curr_vao, self->curr_vbo, 0, 2, GL_FLOAT, 0, 0);
-    vao_unbind();
     vbo_unbind(self->curr_vbo);
     vbo_unbind(self->curr_ibo);
 }
 
-void load_vbo_renderer(Renderer* self, Vector2f vertices[], int num_vertices) {
+void load_vbo_renderer(Renderer* self, Vertex vertices[], int num_vertices) {
     self->flag = false;
-    vbo_buffer(self->curr_vbo, vertices, 0, num_vertices);
-    vao_attr(self->curr_vao, self->curr_vbo, 0, 2, GL_FLOAT, 0, 0);
+    vbo_buffer(self->curr_vbo, vertices, 0, sizeof(vertices[0])*num_vertices);
     self->points = num_vertices;
-    vao_unbind();
     vbo_unbind(self->curr_vbo);
+}
+
+void load_scene_obj_renderer(Renderer *self, SceneObject scene_obj) {
+    if(!scene_obj.noInd) {
+        load_vbo_ibo_renderer(self, scene_obj.vert, scene_obj.num_vertices, scene_obj.ind, scene_obj.num_indices);
+    } else {
+        load_vbo_renderer(self, scene_obj.vert, scene_obj.num_vertices);
+    }
+    use_shader_renderer(self, scene_obj.shader);
 }
 
 void use_shader_renderer(Renderer *self, ShaderEnum shader) {
@@ -52,19 +58,21 @@ void use_shader_renderer(Renderer *self, ShaderEnum shader) {
 
     self->curr_shader = shader;
     self->sel_shader = self->all_shaders[shader];
+    shader_bind(self->sel_shader);
 }
 
-void draw_call_renderer(Renderer self) {
-    shader_bind(self.sel_shader);
+void draw_call_renderer(Renderer self, GLenum mode) {
     vao_bind(self.curr_vao);
     if (self.flag) {
-        //printf("Hello, drawing %d points\n", self.points);
         vbo_bind(self.curr_ibo);
-        glDrawElements(GL_TRIANGLES, self.points, GL_UNSIGNED_INT, (void* ) 0);
+        glDrawElements(mode, self.points, GL_UNSIGNED_INT, (void* ) 0);
         vbo_unbind(self.curr_ibo);
     } else {
-        glDrawArrays(GL_TRIANGLES, 0, self.points);
+        glDrawArrays(mode, 0, self.points);
     }
     vao_unbind();
-    shader_unbind();
+}
+
+void load_vao_attrs(Renderer self, VertexLayout *vl) {
+    add_vao_attr_vl(self.curr_vao, self.curr_vbo, vl);
 }

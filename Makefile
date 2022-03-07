@@ -6,7 +6,7 @@ CC := gcc
 # set the compiler flags
 CFLAGS := -W -Wall --std=c99 -lSDL2 -lm -lGL -lGLEW
 # add header files here
-HDRS := glew/include/GL/glew.h
+HDRS := lib/glew/include/GL/glew.h
 
 # add source files here
 SRCS := $(wildcard src/**/*.c) $(wildcard src/*.c) $(wildcard src/**/**/*.c) $(wildcard src/**/**/**/*.c)

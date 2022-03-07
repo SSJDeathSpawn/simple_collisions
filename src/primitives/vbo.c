@@ -1,22 +1,22 @@
 #include "vbo.h"
 
-struct VBO vbo_create(GLint type) {
-    struct VBO self = {
+VBO vbo_create(GLint type) {
+    VBO self = {
         .type=type
     };
     glGenBuffers(1, &self.id);
     return self;
 } 
 
-void vbo_destroy(struct VBO self) {
+void vbo_destroy(VBO self) {
     glDeleteBuffers(1, &self.id);
 }
 
-void vbo_bind(struct VBO self) {
+void vbo_bind(VBO self) {
     glBindBuffer(self.type, self.id);
 }
 
-void vbo_buffer(struct VBO self, void* data, size_t offset, size_t count) {
+void vbo_buffer(VBO self, void* data, size_t offset, size_t count) {
     vbo_bind(self);
     glBufferData(self.type, count - offset, data, GL_DYNAMIC_DRAW);
     vbo_unbind(self);

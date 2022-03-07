@@ -2,15 +2,21 @@
 layout (triangles) in;
 layout (line_strip, max_vertices=3) out;
 
-void main() {
-    gl_Position = gl_in[0].gl_Position;
-    EmitVertex();
-    
-    gl_Position = gl_in[1].gl_Position;
-    EmitVertex();
+in vData {
+    smooth vec4 colour;
+} vertices[];
 
-    gl_Position = gl_in[2].gl_Position;
-    EmitVertex();
+out fData {
+    smooth vec4 colour;
+} frag;
+
+void main() {
+    
+    for(int i=0;i<3;i++) {
+        frag.colour = vertices[i].colour; 
+        gl_Position = gl_in[i].gl_Position;
+        EmitVertex();
+    }
 
     EndPrimitive();
 }

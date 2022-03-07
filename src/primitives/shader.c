@@ -36,7 +36,6 @@ static GLint _compile(char *path, GLenum type) {
     assert(strlen(text) > 0);
     fclose(f);
 
-    printf("Compiling a shader...");
     GLuint id = glCreateShader(type);
     glShaderSource(id, 1, (const GLchar* const*) &text, (const GLint*) &len);
     glCompileShader(id);
@@ -49,23 +48,19 @@ static GLint _compile(char *path, GLenum type) {
         _log_and_fail(id, "compiling", path, glGetShaderInfoLog, glGetShaderiv);
         exit(1);
     }
-    printf("Shader compiled!\n");
     free(text);
     return id;
 }
 
 ShaderProgram shader_create(char* vs_path, char* fs_path) {
-    printf("Compiling shaders...\n");
     ShaderProgram self;
     self.vs_id = _compile(vs_path, GL_VERTEX_SHADER);
     self.fs_id = _compile(fs_path, GL_FRAGMENT_SHADER);
     self.gs_id = NULL;
     self.id = glCreateProgram();
 
-    printf("Linking shader...");
     glAttachShader(self.id, self.vs_id);
     glAttachShader(self.id, self.fs_id);
-    printf("Checking for errors...");
 
     glLinkProgram(self.id);
 
@@ -79,23 +74,19 @@ ShaderProgram shader_create(char* vs_path, char* fs_path) {
         _log_and_fail(self.id, "linking", buf, glGetProgramInfoLog, glGetProgramiv);
         exit(1);
     }
-    printf("Linked shaders!\n");
     return self;
 } 
 
 ShaderProgram shader_create_with_gs(char* vs_path, char* fs_path, char* gs_path) {
-    printf("Compiling shaders...\n");
     ShaderProgram self;
     self.vs_id = _compile(vs_path, GL_VERTEX_SHADER);
     self.fs_id = _compile(fs_path, GL_FRAGMENT_SHADER);
     self.gs_id = _compile(gs_path, GL_GEOMETRY_SHADER);
     self.id = glCreateProgram();
 
-    printf("Linking shader...");
     glAttachShader(self.id, self.vs_id);
     glAttachShader(self.id, self.fs_id);
     glAttachShader(self.id, self.gs_id);
-    printf("Checking for errors...");
 
     glLinkProgram(self.id);
 
@@ -109,7 +100,6 @@ ShaderProgram shader_create_with_gs(char* vs_path, char* fs_path, char* gs_path)
         _log_and_fail(self.id, "linking", buf, glGetProgramInfoLog, glGetProgramiv);
         exit(1);
     }
-    printf("Linked shaders!\n");
     return self;
 } 
 

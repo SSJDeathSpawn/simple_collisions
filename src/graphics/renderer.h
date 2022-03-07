@@ -3,16 +3,9 @@
 #include "../primitives/vao.h"
 #include "../primitives/vbo.h"
 #include "../primitives/shader.h"
+#include "scene_obj.h"
 #include "../utils/basic.h"
 #include <stdbool.h>
-
-
-#define SHADER_LAST SHADER_LINES
-typedef enum ShaderEnum {
-    SHADER_NONE=0,
-    SHADER_BASIC,
-    SHADER_LINES
-} ShaderEnum;
 
 typedef struct Renderer {
     VBO curr_vbo, curr_ibo;
@@ -26,10 +19,11 @@ typedef struct Renderer {
 
 void init_renderer(Renderer* self);
 void destroy_renderer(Renderer* self);
-void load_vbo_ibo_renderer(Renderer *self, Vector2f vertices[], int num_vertices, GLuint indices[], int num_indices);
-void load_vbo_renderer(Renderer *self, Vector2f vertices[], int num_vertices);
+void load_vbo_ibo_renderer(Renderer *self, Vertex vertices[], int num_vertices, GLuint indices[], int num_indices);
+void load_vbo_renderer(Renderer *self, Vertex vertices[], int num_vertices);
+void load_scene_obj_renderer(Renderer *self, SceneObject scene_obj);
 void use_shader_renderer(Renderer *self, ShaderEnum shader);
-void draw_call_renderer(Renderer self);
-
+void draw_call_renderer(Renderer self, GLenum mode);
+void load_vao_attrs(Renderer self, VertexLayout *vl);
 
 #endif

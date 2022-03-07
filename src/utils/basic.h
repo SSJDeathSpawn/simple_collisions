@@ -7,6 +7,15 @@ typedef struct Vector2f {
     GLfloat y;
 } Vector2f;
 
+typedef struct Colour {
+    GLfloat r, g, b, a;
+} Colour;
+
+typedef struct Vertex {
+    Vector2f pos;
+    Colour colour;
+} Vertex;
+
 Vector2f add_vectors(Vector2f addend1, Vector2f addend2);
 
 Vector2f sub_vectors(Vector2f minuend, Vector2f subtrahend);
