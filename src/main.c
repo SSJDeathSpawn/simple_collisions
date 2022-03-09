@@ -8,7 +8,9 @@
 #include "graphics/scene_obj.h"
 #include "objects/particles.h"
 
-int main() {
+#define PARTICLE_AMT 20
+
+int main(int argc, char** argv) {
     
     unsigned int lastTick, deltaTime;
 
@@ -60,9 +62,8 @@ int main() {
     box.num_indices = sizeof(indices)/sizeof(GLuint);
     box.noInd = false;
 
-    Particle *particles = create_particles(10);
-    Vertex vertexArray[10];
-    SceneObject vis_part = make_scene_obj_from_particles(particles, 10);
+    Particle *particles = create_particles(PARTICLE_AMT);
+    Vertex vertexArray[PARTICLE_AMT];
 
     init_renderer(&renderer);
 
@@ -71,7 +72,7 @@ int main() {
     SDL_GL_SetSwapInterval(1);
     lastTick = SDL_GetTicks();
     while (running) {
-        deltaTime = SDL_GetTicks() - lastTick;  
+        deltaTime = (SDL_GetTicks() - lastTick);  
         lastTick = SDL_GetTicks();
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -80,6 +81,11 @@ int main() {
             }
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        for (int i=0;i<PARTICLE_AMT;i++) { 
+            tick(&particles[i], deltaTime);
+        }
+        check_for_collisions(particles, PARTICLE_AMT); 
+        SceneObject vis_part = make_scene_obj_from_particles(particles, PARTICLE_AMT);
         load_scene_obj_renderer(&renderer, box);
         load_vao_attrs(renderer, vl);
         draw_call_renderer(renderer, GL_TRIANGLES);

@@ -10,8 +10,59 @@ struct Particle create_particle( Vector2f position, Vector2f velocity, Colour co
     return (Particle) {position, velocity, col}; 
 }
 
-void tick(Particle self, float delta_time) {
-    self.position = add_vectors(self.position, scalar_mul(self.velocity, delta_time));
+void tick(Particle *self, float delta_time) {
+    self->position = add_vectors(self->position, scalar_mul(self->velocity, delta_time));
+    if (self->position.x >= 0.75 || self->position.x <= -0.75 || self->position.y >= 0.75 || self->position.y <= -0.75) {
+        WallCollisionSide side;
+        if(self->position.x >= 0.75 || self->position.x <= -0.75) {
+            if (self->position.y >= 0.75 || self->position.y <= -0.75) {
+                side = CORNER;
+            }
+            else if(self->position.x >= 0.75) {
+                side = EAST;
+            } else {
+                side = WEST;
+            }
+        } 
+        else if(self->position.y <= -0.75) {
+            side = NORTH;
+        } else {
+            side = SOUTH;
+        }
+        particle_collide_wall(self, side);
+    }
+}
+
+void check_for_collisions(Particle *particles, int num_particles) {
+    for (int i=0;i<num_particles;i++) {
+        for (int j=i;j<num_particles;j++) {
+            if (i!=j) {
+                if (magnitude(sub_vectors(particles[i].position, particles[j].position)) <= 0.04f) {
+                    handle_collision(&particles[i], &particles[j]);
+                }
+            }
+        }
+    }
+}
+
+void particle_collide_wall(Particle *self, WallCollisionSide side) {
+    switch(side) {
+        case NORTH:
+            self->velocity = (Vector2f) {self->velocity.x, fabs(self->velocity.y)};
+            break;
+        case SOUTH:
+            self->velocity = (Vector2f) {self->velocity.x, -fabs(self->velocity.y)};
+            break;
+        case EAST:
+            self->velocity = (Vector2f) {-fabs(self->velocity.x), self->velocity.y};
+            break;
+        case WEST:
+            self->velocity = (Vector2f) {fabs(self->velocity.x), self->velocity.y};
+            break;
+        case CORNER:
+            self->velocity = (Vector2f) {-self->velocity.x, -self->velocity.y};
+            break; 
+    }
 }
 
 void set_velocity(Particle *self, Vector2f new_vel) {
@@ -47,14 +98,14 @@ Particle *create_particles(int number) {
     srand(time(NULL));
     for(int i=0;i<number;i++) {
         float max_pos = 0.74f;
-        float max_vel = 0.25;
+        float max_vel = 0.0003f;
         //srand(time(NULL));
         float pos_x = pow(-1, rand()) * ((float)rand()/(float)(RAND_MAX)) * max_pos;
         //srand(time(NULL));
         float pos_y = pow(-1, rand()) * ((float)rand()/(float)(RAND_MAX)) * max_pos;
         //srand(time(NULL));
         float vel_x = pow(-1, rand()) * ((float)rand()/(float)(RAND_MAX)) * max_vel;
-        float vel_y = pow(-1, rand()) * (float)sqrt(0.25*0.25-vel_x*vel_x); 
+        float vel_y = pow(-1, rand()) * (float)sqrt(max_vel*max_vel-vel_x*vel_x); 
 
         Colour col;
         //srand(time(NULL));
